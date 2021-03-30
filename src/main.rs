@@ -12,6 +12,15 @@ struct Surface {
     reflectivity: f32,
 }
 
+impl Surface {
+    fn new(color: Vec3, reflectivity: f32) -> Self {
+        Self {
+            color,
+            reflectivity,
+        }
+    }
+}
+
 #[derive(Clone, Copy)]
 struct Sample {
     distance: f32,
@@ -63,18 +72,9 @@ fn displace(p: &Vec3, scale: f32, detail: f32, s: Sample) -> Sample {
 }
 
 fn distfield(p: &Vec3) -> Sample {
-    let mat1 = Surface {
-        color: Vec3::new(1.0, 0.8, 0.4),
-        reflectivity: 0.4,
-    };
-    let mat2 = Surface {
-        color: Vec3::new(0.4, 0.8, 1.0),
-        reflectivity: 0.2,
-    };
-    let mat3 = Surface {
-        color: Vec3::new(1.0, 0.4, 0.8),
-        reflectivity: 0.0,
-    };
+    let mat1 = Surface::new(Vec3::new(1.0, 0.8, 0.4), 0.4);
+    let mat2 = Surface::new(Vec3::new(0.4, 0.8, 1.0), 0.2);
+    let mat3 = Surface::new(Vec3::new(1.0, 0.4, 0.8), 0.0);
     intersect(
         union(
             sphere(&warp(p), &Vec3::new(-30., 0., 0.), 65., mat1),
@@ -130,13 +130,17 @@ fn raycast_out(from: &Vec3, dir: &Vec3) -> Vec3 {
     p
 }
 
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, Debug)]
 struct Light {
     pos: Vec3,
     color: Vec3,
 }
 
 impl Light {
+    fn new(pos: Vec3, color: Vec3) -> Self {
+        Self { pos, color }
+    }
+
     fn in_shadow(&self, point: &Vec3) -> bool {
         let l = normalize(&(self.pos - point));
         // Step out of object
@@ -166,7 +170,7 @@ fn apply_lights<'a>(
     rgb
 }
 
-fn raytrace<'a>(from: &Vec3, dir: &Vec3, lights: &[Light], max_bounces: usize) -> Option<Vec3> {
+fn raytrace(from: &Vec3, dir: &Vec3, lights: &[Light], max_bounces: usize) -> Option<Vec3> {
     raycast(from, dir, |p| distance2(from, p) < 1000000.).map(|(s, p)| {
         let n = guess_normal(&p);
         let mut rgb = apply_lights(&p, &s.surface, &n, lights.iter());
@@ -194,22 +198,10 @@ fn main() -> Result<()> {
     let coords: Vec<_> = img.enumerate_pixels().map(|(x, y, _)| (x, y)).collect();
 
     let lights = [
-        Light {
-            pos: Vec3::new(500., 1000., -300.),
-            color: Vec3::new(1.0, 0.5, 0.),
-        },
-        Light {
-            pos: Vec3::new(-700., -500., -10.),
-            color: Vec3::new(0., 0.5, 1.0),
-        },
-        Light {
-            pos: Vec3::new(-700., 1500., 10.),
-            color: Vec3::new(0.5, 0., 1.0),
-        },
-        Light {
-            pos: Vec3::new(10., -20., -50.),
-            color: Vec3::new(0.3, 0.2, 0.2),
-        },
+        Light::new(Vec3::new(500., 1000., -300.), Vec3::new(1.0, 0.5, 0.)),
+        Light::new(Vec3::new(-700., -500., -10.), Vec3::new(0., 0.5, 1.0)),
+        Light::new(Vec3::new(-700., 1500., 10.), Vec3::new(0.5, 0., 1.0)),
+        Light::new(Vec3::new(10., -20., -50.), Vec3::new(0.3, 0.2, 0.2)),
     ];
 
     let progress = Arc::new(Mutex::new((0i32, progress::Bar::new())));
