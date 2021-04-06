@@ -3,7 +3,6 @@ use std::sync::{Arc, Mutex};
 use anyhow::Result;
 use image::{ImageBuffer, Rgba, RgbaImage};
 use nalgebra_glm::{clamp_scalar, distance, distance2, dot, mix, normalize, reflect_vec, Vec3};
-use progress;
 use rayon::prelude::*;
 
 #[derive(Clone, Copy)]
@@ -105,7 +104,7 @@ fn raycast<F>(from: &Vec3, dir: &Vec3, condition: F) -> Option<(Sample, Vec3)>
 where
     F: Fn(&Vec3) -> bool,
 {
-    let mut p = from.clone();
+    let mut p = *from;
     while condition(&p) {
         let s = distfield(&p);
         if s.distance <= 0. {
@@ -118,7 +117,7 @@ where
 }
 
 fn raycast_out(from: &Vec3, dir: &Vec3) -> Vec3 {
-    let mut p = from.clone();
+    let mut p = *from;
     loop {
         let f = -1.0 * distfield(&p).distance;
         if f < 0. {
@@ -179,8 +178,8 @@ fn raytrace(from: &Vec3, dir: &Vec3, lights: &[Light], max_bounces: usize) -> Op
         if reflectivity > 0.0 && max_bounces > 0 {
             let r = reflect_vec(dir, &n);
             let p = raycast_out(&p, &r);
-            let reflected_color =
-                raytrace(&p, &r, lights, max_bounces - 1).unwrap_or(Vec3::new(0.3, 0.3, 0.3));
+            let reflected_color = raytrace(&p, &r, lights, max_bounces - 1)
+                .unwrap_or_else(|| Vec3::new(0.3, 0.3, 0.3));
             rgb = mix(&rgb, &reflected_color, reflectivity);
         }
         rgb
