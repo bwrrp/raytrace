@@ -1,4 +1,4 @@
-use nalgebra_glm::{distance, Vec3};
+use ultraviolet::Vec3;
 
 #[derive(Clone, Copy)]
 pub struct Surface {
@@ -47,17 +47,17 @@ fn invert(s: Sample) -> Sample {
 fn sphere(p: &Vec3, center: &Vec3, radius: f32, surface: Surface) -> Sample {
     // sphere at origin
     Sample {
-        distance: distance(p, center) - radius,
+        distance: (*p - *center).mag() - radius,
         surface,
     }
 }
 
 fn warp(p: &Vec3) -> Vec3 {
-    p + Vec3::new((0.4 * p.y).sin(), (0.6 * p.z).sin(), (0.8 * p.x).sin())
+    *p + Vec3::new((0.4 * p.y).sin(), (0.6 * p.z).sin(), (0.8 * p.x).sin())
 }
 
 fn displace(p: &Vec3, scale: f32, detail: f32, s: Sample) -> Sample {
-    let p = p * detail;
+    let p = *p * detail;
     let displacement = scale * p.x.sin() * p.y.sin() * p.z.sin();
     Sample {
         distance: s.distance + displacement,

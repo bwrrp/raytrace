@@ -2,8 +2,8 @@ use std::sync::{Arc, Mutex};
 
 use anyhow::Result;
 use image::{ImageBuffer, Rgba, RgbaImage};
-use nalgebra_glm::{normalize, Vec3};
 use rayon::prelude::*;
+use ultraviolet::Vec3;
 
 use raycast::{raytrace, Light};
 
@@ -39,7 +39,7 @@ fn main() -> Result<()> {
 
             let p_img = Vec3::new(*x as _, (height - *y) as _, 0.0);
             let p_scaled = (p_img - center) / width.min(height) as f32 * 250.;
-            let ray_dir = normalize(&(p_scaled - eye));
+            let ray_dir = (p_scaled - eye).normalized();
 
             let color = raytrace(&eye, &ray_dir, &lights, 5).map(|rgb| {
                 let rgb_scaled = rgb * 255.;
