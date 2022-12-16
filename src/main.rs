@@ -41,7 +41,7 @@ fn main() -> Result<()> {
             let p_scaled = (p_img - center) / width.min(height) as f32 * 250.;
             let ray_dir = (p_scaled - eye).normalized();
 
-            let color = raytrace(&eye, &ray_dir, &lights, 5).map(|rgb| {
+            let color = raytrace(eye, ray_dir, &lights, 5).map(|rgb| {
                 let rgb_scaled = rgb * 255.;
                 Rgba([rgb_scaled.x as _, rgb_scaled.y as _, rgb_scaled.z as _, 255])
             });

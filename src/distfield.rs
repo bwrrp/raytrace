@@ -44,20 +44,20 @@ fn invert(s: Sample) -> Sample {
     }
 }
 
-fn sphere(p: &Vec3, center: &Vec3, radius: f32, surface: Surface) -> Sample {
+fn sphere(p: Vec3, center: Vec3, radius: f32, surface: Surface) -> Sample {
     // sphere at origin
     Sample {
-        distance: (*p - *center).mag() - radius,
+        distance: (p - center).mag() - radius,
         surface,
     }
 }
 
-fn warp(p: &Vec3) -> Vec3 {
-    *p + Vec3::new((0.4 * p.y).sin(), (0.6 * p.z).sin(), (0.8 * p.x).sin())
+fn warp(p: Vec3) -> Vec3 {
+    p + Vec3::new((0.4 * p.y).sin(), (0.6 * p.z).sin(), (0.8 * p.x).sin())
 }
 
-fn displace(p: &Vec3, scale: f32, detail: f32, s: Sample) -> Sample {
-    let p = *p * detail;
+fn displace(p: Vec3, scale: f32, detail: f32, s: Sample) -> Sample {
+    let p = p * detail;
     let displacement = scale * p.x.sin() * p.y.sin() * p.z.sin();
     Sample {
         distance: s.distance + displacement,
@@ -65,20 +65,20 @@ fn displace(p: &Vec3, scale: f32, detail: f32, s: Sample) -> Sample {
     }
 }
 
-pub fn distfield(p: &Vec3) -> Sample {
+pub fn distfield(p: Vec3) -> Sample {
     let mat1 = Surface::new(Vec3::new(1.0, 0.8, 0.4), 0.4);
     let mat2 = Surface::new(Vec3::new(0.4, 0.8, 1.0), 0.2);
     let mat3 = Surface::new(Vec3::new(1.0, 0.4, 0.8), 0.0);
     intersect(
         union(
-            sphere(&warp(p), &Vec3::new(-30., 0., 0.), 65., mat1),
-            sphere(p, &Vec3::new(30., 10., -10.), 50., mat2),
+            sphere(warp(p), Vec3::new(-30., 0., 0.), 65., mat1),
+            sphere(p, Vec3::new(30., 10., -10.), 50., mat2),
         ),
         invert(displace(
             p,
             10.,
             0.2,
-            sphere(p, &Vec3::new(10., -20., -60.), 30., mat3),
+            sphere(p, Vec3::new(10., -20., -60.), 30., mat3),
         )),
     )
 }
